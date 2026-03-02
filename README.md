@@ -2,6 +2,8 @@
 
 A simple, dark-themed web tool that replaces {{}} placeholders in text with custom values. Built with vanilla HTML, CSS, and JavaScript.
 
+[https://sayantan-b-dev.github.io/Lv1_Placeholder_Text_Filler/](https://sayantan-b-dev.github.io/Lv1_Placeholder_Text_Filler/)
+
 ## Features
 
 - Write text with {{}} placeholders
