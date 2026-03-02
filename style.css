@@ -200,9 +200,6 @@ button:active {
     color: #d3e2f0;
     font-size: 1.05rem;
     line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: 'Fira Code', monospace, system-ui;
 }
 
 .output-label {
@@ -236,22 +233,43 @@ footer {
     justify-content: center;
 }
 
+/* ===== Enhanced Dropdown ===== */
 .prompt-dropdown {
     background: #0f131a;
     color: #eef2f7;
     border: 1px solid #2e3a48;
     border-radius: 44px;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem 2.5rem 0.8rem 1.5rem;
     font-size: 0.95rem;
     flex: 1;
     max-width: 400px;
     cursor: pointer;
     font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b0c2d0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 1.2rem center;
+    background-size: 16px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.prompt-dropdown:hover {
+    background-color: #1a232e;
+    border-color: #5f7f9f;
 }
 
 .prompt-dropdown:focus {
     outline: none;
     border-color: #5f7f9f;
+    box-shadow: 0 0 0 2px #2f4f6f;
+}
+
+.prompt-dropdown option {
+    background: #1a1e26;
+    color: #eef2f7;
+    padding: 10px;
 }
 
 .load-btn {
@@ -289,4 +307,31 @@ footer {
     word-break: break-word;
     max-height: 300px;
     overflow-y: auto;
+}
+
+/* ===== Custom Scrollbars ===== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1e26;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3f4d5c;
+    border-radius: 10px;
+    border: 2px solid #1a1e26;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5f7e9e;
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #3f4d5c #1a1e26;
 }

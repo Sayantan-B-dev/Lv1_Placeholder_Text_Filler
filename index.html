@@ -13,12 +13,12 @@
 
     <div class="dropdown-container">
         <select id="promptDropdown" class="prompt-dropdown">
-            <option value="">-- Select a template --</option>
+            <!-- Options will be populated by JavaScript -->
         </select>
         <button class="load-btn" onclick="loadSelectedPrompt()">Load</button>
     </div>
 
-    <textarea id="promptTemplate" placeholder="e.g., 'Write a {{}} story about a {{}} who discovers {{}} and then {{}}.'">Write a {{}} story about a {{}} who discovers {{}} and then {{}}.</textarea>
+    <textarea id="promptTemplate" placeholder="e.g., 'Write a {{}} story about a {{}} who discovers {{}} and then {{}}.'"></textarea>
 
     <div class="stats-badge" id="statsBadge">
         <span class="stat-item">placeholders <span class="stat-value" id="placeholderCount">0</span></span>
