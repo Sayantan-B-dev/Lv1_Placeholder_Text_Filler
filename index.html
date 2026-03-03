@@ -24,19 +24,22 @@
         <span class="stat-item">placeholders <span class="stat-value" id="placeholderCount">0</span></span>
         <span class="stat-item">inputs <span class="stat-value" id="inputCount">0</span></span>
     </div>
-
-    <div class="inputs-container" id="inputsContainer">
-    </div>
+<div class="inputs-container" id="inputsContainer">
+    <textarea 
+        id="inputsTextArea"
+        placeholder="Enter one value per line, in placeholder order..."
+        rows="6">
+    </textarea>
+</div>
 
     <div class="button-panel">
-        <button onclick="addInputField()">Add input</button>
-        <button onclick="syncInputsToTemplate()">Sync with template</button>
         <button onclick="generatePrompt()" style="background:#2c4056; border-color:#5f83a3;">Generate prompt</button>
     </div>
 
     <div class="output-section" id="outputResult">
         <div class="output-header">
             <span class="output-label">generated output</span>
+            <button id="copyButton" class="copy-btn">Copy</button>
         </div>
         <div class="output-content" id="outputText">
             Your filled prompt will appear here...
