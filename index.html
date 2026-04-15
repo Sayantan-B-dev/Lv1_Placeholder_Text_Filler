@@ -1,53 +1,280 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Placeholder Text Filler</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Filler</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
+<div class="app">
 
-    <h1>Placeholder Text Filler</h1>
-
-    <div class="dropdown-container">
-        <select id="promptDropdown" class="prompt-dropdown">
-            <!-- Options will be populated by JavaScript -->
-        </select>
-        <button class="load-btn" onclick="loadSelectedPrompt()">Load</button>
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-head-left">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span class="sidebar-title">Prompts</span>
+      </div>
+      <div class="sidebar-actions">
+        <button class="icon-btn" id="btnNew" title="New prompt (Ctrl+N)">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="icon-btn" id="btnImportOpen" title="Import prompts from markdown">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </button>
+        <button class="icon-btn" id="btnExportAll" title="Export all prompts as markdown">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
     </div>
 
-    <textarea id="promptTemplate" placeholder="e.g., 'Write a {{}} story about a {{}} who discovers {{}} and then {{}}.'"></textarea>
-
-    <div class="stats-badge" id="statsBadge">
-        <span class="stat-item">placeholders <span class="stat-value" id="placeholderCount">0</span></span>
-        <span class="stat-item">inputs <span class="stat-value" id="inputCount">0</span></span>
+    <div class="sidebar-search">
+      <svg class="icon search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Filter prompts..." autocomplete="off">
     </div>
-<div class="inputs-container" id="inputsContainer">
-    <textarea 
-        id="inputsTextArea"
-        placeholder="Enter one value per line, in placeholder order..."
-        rows="6">
-    </textarea>
+
+    <div class="sidebar-list" id="sidebarList"></div>
+
+    <div class="sidebar-footer">
+      <button class="btn-how-it-works" id="btnHowItWorks">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        How it works
+      </button>
+      <div class="warn-notice">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Prompts are stored in browser localStorage. Clearing site data deletes everything. Use export for backup.</span>
+      </div>
+      <button class="btn-danger-full" id="btnDeleteAll">
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Delete all prompts
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="icon-btn" id="sidebarToggle" title="Toggle sidebar">
+        <svg class="icon" id="toggleIconOpen" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg class="icon" id="toggleIconClose" viewBox="0 0 24 24" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="topbar-breadcrumb">
+        <span class="breadcrumb-app">Prompt Filler</span>
+        <span class="breadcrumb-sep" id="breadcrumbSep" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+        <span class="breadcrumb-name" id="breadcrumbName"></span>
+        <span class="dirty-dot" id="dirtyDot" style="display:none" title="Unsaved changes"></span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-ghost" id="btnDiscard" style="display:none" title="Discard changes">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 101 5.657"/><polyline points="3 3 3 9 9 9"/></svg>
+          Revert
+        </button>
+        <button class="btn-primary" id="btnSave" title="Save (Ctrl+S)">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save
+        </button>
+        <button class="icon-btn" id="btnExportOne" title="Download this prompt as .md">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/><path d="M20 21H4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- SPLIT PANES -->
+    <div class="workspace">
+
+      <!-- LEFT: EDITOR -->
+      <section class="pane pane-left">
+        <div class="pane-header">
+          <span class="pane-label">Editor</span>
+          <div class="stats-row" id="statsRow">
+            <span class="stat-chip" id="statPH">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
+              <b id="phCount">0</b> placeholders
+            </span>
+            <span class="stat-chip" id="statIN">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <b id="inCount">0</b> values
+            </span>
+          </div>
+        </div>
+        <div class="pane-body" id="editorBody">
+
+          <!-- EMPTY STATE -->
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <p class="empty-title">No prompt selected</p>
+            <p class="empty-sub">Select from the sidebar or create a new prompt to get started.</p>
+            <button class="btn-primary" id="btnNewEmpty">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New prompt
+            </button>
+          </div>
+
+          <!-- EDITOR FIELDS -->
+          <div class="editor-fields" id="editorFields" style="display:none">
+            <div class="field-group">
+              <label class="field-label" for="promptName">Name</label>
+              <input type="text" id="promptName" class="field-input" placeholder="Untitled prompt" autocomplete="off">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="templateArea">
+                Template
+                <span class="field-hint">Use <code>{{}}</code> as placeholders</span>
+              </label>
+              <textarea id="templateArea" class="field-textarea" placeholder="e.g. Write a {{}} story about a {{}} who discovers {{}} and then {{}}."></textarea>
+            </div>
+            <div class="field-group" id="valuesSection">
+              <label class="field-label">Values</label>
+              <div id="inputsWrap"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- RESIZE HANDLE -->
+      <div class="resize-handle" id="resizeHandle"></div>
+
+      <!-- RIGHT: OUTPUT -->
+      <section class="pane pane-right">
+        <div class="pane-header">
+          <span class="pane-label">Output</span>
+          <div class="output-actions">
+            <button class="btn-ghost sm" id="btnClearValues" title="Clear all input values">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+              Clear values
+            </button>
+            <button class="btn-primary sm" id="btnCopy">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span id="copyLabel">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="pane-body">
+          <div class="output-wrap">
+            <div id="outputContent" class="output-content">
+              <span class="output-placeholder">Generated output will appear here as you type...</span>
+            </div>
+            <div class="output-meta" id="outputMeta" style="display:none">
+              <span id="outputCharCount">0 chars</span>
+              <span id="outputWordCount">0 words</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
 </div>
 
-    <div class="button-panel">
-        <button onclick="generatePrompt()" style="background:#2c4056; border-color:#5f83a3;">Generate prompt</button>
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importModal" style="display:none" role="dialog" aria-modal="true" aria-label="Import prompts">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 class="modal-title">Import prompts</h2>
+      <button class="icon-btn" id="btnImportClose">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
+    <div class="modal-body">
+      <p class="modal-desc">Paste a markdown file below. Prompts are separated by <code>---</code>. The first line of each block is used as the name.</p>
+      <div class="import-example">
+        <div class="import-example-label">Expected format</div>
+        <pre class="import-example-code">My first prompt
+Write a {{}} story about a {{}} who {{}}.
 
-    <div class="output-section" id="outputResult">
-        <div class="output-header">
-            <span class="output-label">generated output</span>
-            <button id="copyButton" class="copy-btn">Copy</button>
-        </div>
-        <div class="output-content" id="outputText">
-            Your filled prompt will appear here...
-        </div>
+---
+
+My second prompt
+Act as a {{}} expert and explain {{}} to a {{}}.</pre>
+      </div>
+      <textarea id="importTextArea" class="field-textarea" rows="8" placeholder="Paste your markdown here..."></textarea>
     </div>
-
-    <footer>each {{}} replaced in order</footer>
+    <div class="modal-footer">
+      <button class="btn-ghost" id="btnImportCancel">Cancel</button>
+      <button class="btn-primary" id="btnImportConfirm">
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Import
+      </button>
+    </div>
+  </div>
 </div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmModal" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h2 class="modal-title" id="confirmTitle">Confirm</h2>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc" id="confirmMsg"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" id="btnConfirmCancel">Cancel</button>
+      <button class="btn-danger" id="btnConfirmOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS MODAL -->
+<div class="overlay" id="howItWorksModal" style="display:none" role="dialog" aria-modal="true" aria-label="How it works">
+  <div class="modal modal-how">
+    <div class="modal-head">
+      <h2 class="modal-title">How it works</h2>
+      <button class="icon-btn" id="btnHowItWorksClose">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body how-body">
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <div class="how-step-content">
+          <div class="how-step-title">Create a prompt template</div>
+          <div class="how-step-desc">Click <b>+</b> in the sidebar to create a new prompt. Give it a name, then write your template text in the Editor. Use <code>{{}}</code> anywhere you want a fillable placeholder — you can add as many as you need.</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <div class="how-step-content">
+          <div class="how-step-title">Fill in the values</div>
+          <div class="how-step-desc">Each <code>{{}}</code> in your template generates a numbered input field below the template. Type your values into these fields — the Output panel on the right updates instantly as you type.</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <div class="how-step-content">
+          <div class="how-step-title">Copy the output</div>
+          <div class="how-step-desc">Once you're happy with the filled-in result, click <b>Copy</b> in the Output panel to copy the complete prompt to your clipboard, ready to paste anywhere.</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">4</div>
+        <div class="how-step-content">
+          <div class="how-step-title">Save &amp; organise</div>
+          <div class="how-step-desc">Press <b>Save</b> (or <kbd>Ctrl+S</kbd>) to persist your prompt. Prompts are stored in your browser's localStorage. You can drag to reorder them in the sidebar, search by name or content, and export/import them as <code>.md</code> files for backup.</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">5</div>
+        <div class="how-step-content">
+          <div class="how-step-title">Export for backup</div>
+          <div class="how-step-desc">Use the <b>↓</b> (download) button in the topbar or sidebar to export individual prompts, or use <b>Export all</b> to download every prompt as a single <code>prompts-export.md</code> file. Import it back anytime using the <b>↑</b> button.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast" aria-live="polite"></div>
 
 <script src="script.js"></script>
 </body>

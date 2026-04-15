@@ -1,307 +1,796 @@
+/**
+ * Prompt Filler — script.js
+ * Vanilla JS, no dependencies.
+ * All state lives in localStorage under key PF_KEY.
+ */
+
 (function () {
-    // DOM Elements
-    const templateArea = document.getElementById('promptTemplate');
-    const inputsContainer = document.getElementById('inputsContainer');
-    const placeholderSpan = document.getElementById('placeholderCount');
-    const inputSpan = document.getElementById('inputCount');
-    const outputText = document.getElementById('outputText');
-    const dropdown = document.getElementById('promptDropdown');
-    const copyButton = document.getElementById('copyButton');
+  'use strict';
 
-    // Hardcoded prompts
-    const hardcodedPrompts = [
-        {
-            name: "Note Prompt Template",
-            template: "Act as a senior software engineer writing structured technical documentation for a public GitHub repository focused on Python and Data Structures & Algorithms.\n\nThe output must read like carefully written engineering notes, not AI-generated content.\n\nStrict Writing Rules:\n- No emojis.\n- No conversational tone.\n- No motivational or instructional phrases.\n- No rhetorical questions.\n- No filler or generic transitions.\n- No references to the writing process.\n- No \"In this article/section we will…\" phrasing.\n- No summary-style conclusions.\n- No self-references.\n- No repetitive sentence structures.\n- Avoid predictable AI phrasing patterns.\n\nTone:\n- Formal, analytical, and precise.\n- Concise but technically deep.\n- Written as personal engineering documentation.\n- Focus on clarity and correctness.\n\nStructure Requirements:\n1. Definition and Concept Overview\n2. Core Principles and Internal Mechanics\n3. Step-by-Step Logical Breakdown\n4. Implementation (Python) with meaningful inline comments\n5. Time and Space Complexity Analysis\n6. Edge Cases and Failure Scenarios\n7. Practical Use Cases\n8. Limitations and Trade-offs (if applicable)\n\nCode Requirements:\n- Use clear variable names.\n- Include comments explaining reasoning, not obvious syntax.\n- Avoid trivial examples unless conceptually necessary.\n- Keep formatting clean and professional.\n\nTopic:\n{{}}"
-        },
-        {
-            name: "Code Review Expert",
-            template: "Act as a senior software engineer conducting a thorough code review. Analyze the following code for:\n\n1. Code Quality and Maintainability\n2. Performance Bottlenecks\n3. Security Vulnerabilities\n4. Error Handling\n5. Architecture and Design Patterns\n6. Testing Coverage\n7. Documentation Completeness\n8. Best Practices Violations\n\nProvide specific line-by-line feedback with severity levels (Critical, Major, Minor, Suggestion). Include code examples for improvements where applicable.\n\nLanguage/Framework: {{}}\nCode to review:\n{{}}"
-        },
-        {
-            name: "System Design Interview",
-            template: "Act as a system design interviewer at a top tech company. Help me design {{}}.\n\nCover these aspects:\n1. Requirements (Functional and Non-functional)\n2. Capacity Estimation and Constraints\n3. Data Model and Schema Design\n4. High-Level System Architecture\n5. Detailed Component Design\n6. API Design\n7. Database Choice and Rationale\n8. Caching Strategy\n9. Load Balancing and Scaling\n10. Fault Tolerance and Reliability\n11. Monitoring and Alerting\n12. Trade-offs and Alternatives\n\nScale expectations: {{}} users, {{}} requests per second.\n\nAdditional constraints: {{}}"
-        },
-        {
-            name: "Technical Blog Post",
-            template: "Write a technical blog post about {{}} targeting experienced {{}} developers.\n\nStructure:\n- Hook: Start with a real-world problem\n- Context: Why this topic matters\n- Deep Dive: Technical explanation with code examples\n- Common Pitfalls: Mistakes to avoid\n- Best Practices: Production-ready approaches\n- Performance Considerations: Benchmarks and optimizations\n- Conclusion: Key takeaways\n\nTone: Authoritative but approachable, like a senior engineer sharing knowledge.\nInclude {{}} code snippets and {{}} diagrams description.\nWord count target: {{}} words."
-        },
-        {
-            "name": "LeetCode Problem Solver",
-            "template": "Act as a competitive programming coach. Solve this LeetCode problem step by step:\n\nProblem: {{}}\nDifficulty: {{}}\n\nProvide:\n1. Problem understanding and edge cases\n2. Brute force approach with complexity\n3. Optimized approach intuition\n4. Step-by-step algorithm\n5. Code implementation in {{}}\n6. Time and space complexity analysis\n7. Test cases with explanations\n8. Alternative solutions and trade-offs\n9. Key patterns to recognize for similar problems\n\nMake sure to explain the thought process thoroughly."
-        },
-        {
-            "name": "API Documentation Writer",
-            "template": "Create comprehensive API documentation for the following endpoint:\n\nEndpoint: {{}}\nMethod: {{}}\nDescription: {{}}\n\nInclude:\n- Authentication requirements\n- Request headers\n- Request body schema with examples\n- Query parameters\n- Path parameters\n- Successful response structure (200)\n- Error responses (4xx, 5xx) with codes\n- Rate limiting information\n- Curl examples\n- JavaScript/Python examples\n- Edge cases and limitations\n- Changelog if applicable\n\nFormat in clean Markdown with proper code blocks."
-        },
-        {
-            "name": "Database Schema Designer",
-            "template": "Design a database schema for {{}}.\n\nRequirements:\n{{}}\n\nProvide:\n1. Entity-Relationship Diagram (text description)\n2. Tables with columns, data types, constraints\n3. Primary keys and foreign keys\n4. Indexes with rationale\n5. Partitioning strategy if needed\n6. Migration strategy\n7. Query patterns and optimization\n8. Data growth estimate: {{}}\n9. Backup and recovery strategy\n10. Sharding considerations for scale\n\nDatabase system: {{}}"
-        },
-        {
-            "name": "DevOps Pipeline Architect",
-            "template": "Design a CI/CD pipeline for a {{}} application.\n\nTech stack: {{}}\nRepository: {{}}\nDeployment target: {{}}\n\nInclude:\n1. Pipeline stages with justification\n2. Build steps and optimizations\n3. Test strategy (unit, integration, e2e)\n4. Security scanning tools\n5. Artifact management\n6. Environment strategy (dev/staging/prod)\n7. Rollback strategy\n8. Monitoring and observability\n9. Notifications and alerts\n10. Compliance and governance checks\n11. Estimated pipeline duration\n12. Tools recommendation with alternatives\n\nProvide YAML configuration examples for {{}}."
-        },
-        {
-            "name": "Frontend Architecture",
-            "template": "Design a frontend architecture for {{}}.\n\nRequirements:\n- Users: {{}}\n- Features: {{}}\n- Performance targets: {{}}\n- Target browsers: {{}}\n\nCover:\n1. Framework choice and rationale\n2. State management approach\n3. Folder structure\n4. Component architecture\n5. Styling solution\n6. API layer design\n7. Authentication flow\n8. Routing strategy\n9. Bundle optimization\n10. Code splitting strategy\n11. Caching strategy\n12. Error boundaries and fallbacks\n13. Analytics implementation\n14. PWA considerations if needed\n15. Testing strategy\n\nInclude code examples for key patterns."
-        },
-        {
-            "name": "Machine Learning Engineer",
-            "template": "Act as a machine learning engineer. Design a solution for {{}}.\n\nProblem type: {{}}\nData available: {{}}\nSuccess metrics: {{}}\n\nProvide:\n1. Problem framing and assumptions\n2. Data preprocessing pipeline\n3. Feature engineering ideas\n4. Model selection with rationale\n5. Training strategy\n6. Evaluation methodology\n7. Hyperparameter tuning approach\n8. Model deployment strategy\n9. Monitoring and drift detection\n10. Retraining pipeline\n11. Ethical considerations and biases\n12. Baseline performance expectations\n\nInclude pseudocode for key components."
-        },
-        {
-            "name": "Security Audit Report",
-            "template": "Conduct a security audit for {{}}.\n\nScope: {{}}\n\nAnalyze:\n1. Authentication vulnerabilities\n2. Authorization issues\n3. Input validation flaws\n4. Data exposure risks\n5. Injection vulnerabilities (SQL, NoSQL, command)\n6. Cross-site scripting (XSS)\n7. Cross-site request forgery (CSRF)\n8. Insecure dependencies\n9. Security misconfigurations\n10. Session management issues\n11. Rate limiting gaps\n12. Business logic flaws\n\nFor each finding:\n- Severity (Critical/High/Medium/Low)\n- Description\n- Impact\n- Reproduction steps\n- Remediation recommendation\n- Code example of fix\n\nProvide executive summary and prioritized action plan."
-        },
-        {
-            "name": "Technical Interview Questions",
-            "template": "Generate technical interview questions for a {{}} position.\n\nExperience level: {{}}\nTech stack: {{}}\n\nCreate:\n1. {{}} behavioral questions\n2. {{}} coding problems with varying difficulty\n3. {{}} system design questions\n4. {{}} architecture questions\n5. {{}} debugging scenarios\n6. {{}} conceptual questions\n7. {{}} best practices questions\n\nFor each question include:\n- What it tests\n- Expected answer points\n- Follow-up questions\n- Red flags to watch for\n- Scoring rubric\n\nAlso provide a interview scorecard template."
-        },
-        {
-            "name": "Project Estimator",
-            "template": "Estimate the effort for building {{}}.\n\nProject type: {{}}\nTeam size: {{}}\nConstraints: {{}}\n\nProvide:\n1. Requirements breakdown\n2. Technical complexity assessment\n3. Unknowns and risks\n4. Development phases\n5. Time estimates per phase (optimistic/pessimistic/realistic)\n6. Resource allocation\n7. Dependencies and blockers\n8. Testing effort\n9. Documentation effort\n10. Deployment and rollout effort\n11. Maintenance considerations\n12. Contingency buffer\n13. Total timeline with milestones\n14. Cost estimation if applicable\n\nInclude assumptions and confidence level."
-        },
-        {
-            "name": "Code Refactoring Plan",
-            "template": "Create a refactoring plan for {{}}.\n\nCurrent codebase: {{}}\nIssues to address: {{}}\n\nProvide:\n1. Current state analysis\n2. Goals and success criteria\n3. Risk assessment\n4. Refactoring strategy (strangler fig, incremental, rewrite)\n5. Phase breakdown with milestones\n6. Testing strategy during refactor\n7. Feature flags approach\n8. Rollback plan\n9. Performance considerations\n10. Team coordination\n11. Timeline estimates\n12. Code review checklist\n13. Documentation updates needed\n\nInclude specific code examples for before/after."
-        },
-        {
-            "name": "Microservices Design",
-            "template": "Design a microservices architecture for {{}}.\n\nDomain: {{}}\nScale: {{}}\n\nCover:\n1. Service boundaries and decomposition\n2. Communication protocols (sync/async)\n3. API gateway design\n4. Service discovery\n5. Configuration management\n6. Database per service strategy\n7. Distributed transactions handling\n8. Saga pattern implementation\n9. CQRS if applicable\n10. Event sourcing considerations\n11. Monitoring and tracing\n12. Logging aggregation\n13. Circuit breakers and resilience\n14. Deployment strategy\n15. Versioning approach\n16. Security between services\n\nProvide service interaction diagrams in text."
-        },
-        {
-            "name": "Performance Optimization",
-            "template": "Optimize the performance of {{}}.\n\nCurrent metrics: {{}}\nTarget metrics: {{}}\n\nAnalyze and provide:\n1. Performance profiling approach\n2. Identified bottlenecks\n3. Database query optimization\n4. Caching strategy improvements\n5. Code-level optimizations\n6. Memory usage optimization\n7. CPU usage optimization\n8. I/O optimization\n9. Network optimization\n10. Frontend optimizations\n11. CDN and edge computing\n12. Compression strategies\n13. Lazy loading implementation\n14. Benchmarking methodology\n15. Expected improvements with measurements\n\nInclude specific code changes with before/after examples."
-        },
-        {
-            "name": "Technical Onboarding Guide",
-            "template": "Create a technical onboarding guide for new developers joining a {{}} project.\n\nTech stack: {{}}\nTeam size: {{}}\nProject complexity: {{}}\n\nInclude:\n1. Development environment setup (step by step)\n2. Repository structure overview\n3. Key dependencies and why they're used\n4. Local build and run instructions\n5. Testing setup and how to run tests\n6. Debugging techniques\n7. Common development workflows\n8. Code review process\n9. Deployment process overview\n10. Monitoring and logging access\n11. Documentation resources\n12. Architecture overview with diagrams\n13. Key code areas to understand first\n14. Common pitfalls and how to avoid them\n15. Who to contact for different areas\n\nEstimated time to complete: {{}}"
-        },
-        {
-            "name": "Error Handling Strategy",
-            "template": "Design an error handling strategy for {{}}.\n\nApplication type: {{}}\nCriticality: {{}}\n\nCover:\n1. Error classification taxonomy\n2. Graceful degradation approach\n3. Retry strategies with backoff\n4. Circuit breaker implementation\n5. Fallback mechanisms\n6. User-facing error messages\n7. Logging and monitoring\n8. Alerting thresholds\n9. Error tracking tools\n10. Debug information collection\n11. Compliance and audit requirements\n12. Testing error scenarios\n13. Recovery procedures\n14. Post-mortem process\n\nProvide code examples for {{}} language/framework."
-        },
-        {
-            "name": "Database Migration Plan",
-            "template": "Create a database migration plan from {{}} to {{}}.\n\nCurrent schema size: {{}}\nDowntime allowance: {{}}\n\nProvide:\n1. Pre-migration assessment\n2. Schema mapping and transformation\n3. Data validation strategy\n4. Migration approaches (blue-green, parallel, ETL)\n5. Timeline with phases\n6. Rollback strategy\n7. Performance considerations\n8. Data consistency checks\n9. Application code changes needed\n10. Testing strategy\n11. Cutover plan\n12. Post-migration verification\n13. Monitoring during migration\n14. Communication plan\n\nInclude sample migration scripts and rollback procedures."
-        },
-        {
-            "name": "API Rate Limiting Design",
-            "template": "Design a rate limiting system for {{}}.\n\nAPI users: {{}}\nExpected traffic: {{}}\n\nCover:\n1. Rate limiting algorithms (token bucket, leaky bucket, sliding window)\n2. Distributed rate limiting approach\n3. Storage choice (Redis, etc.)\n4. Key design (user, IP, API key)\n5. Limit tiers and quotas\n6. Response headers for limits\n7. Error responses\n8. Burst handling\n9. Throttling vs blocking\n10. Monitoring and alerting\n11. Analytics and reporting\n12. Testing strategy\n13. Bypass mechanisms for emergencies\n14. Implementation considerations\n\nProvide pseudocode or code examples."
-        },
-        {
-            "name": "Feature Flag System",
-            "template": "Design a feature flag system for {{}}.\n\nRequirements:\n- Users: {{}}\n- Environments: {{}}\n- Use cases: {{}}\n\nCover:\n1. Flag types (release, experiment, ops, permission)\n2. Flag configuration storage\n3. Targeting rules (user segments, percentages)\n4. SDK/client implementation\n5. Management UI\n6. Flag evaluation performance\n7. Caching strategy\n8. Rollout strategies (canary, blue-green)\n9. A/B testing integration\n10. Flag lifecycle management\n11. Cleanup process\n12. Audit logging\n13. Monitoring and metrics\n14. Security considerations\n15. Disaster recovery\n\nProvide API design and code examples."
-        },
-        {
-            "name": "Technical Debt Register",
-            "template": "Create a technical debt register for {{}}.\n\nCurrent issues: {{}}\n\nFor each debt item document:\n1. Description and location\n2. Classification (code, architecture, test, docs, infra)\n3. Impact assessment\n4. Estimated effort to fix\n5. Business value of fixing\n6. Risk of not fixing\n7. Dependencies\n8. Suggested solution approach\n9. Priority (P0-P3)\n10. Owner\n11. Target resolution date\n\nProvide prioritization matrix and quarterly roadmap for addressing top {{}} items."
-        },
-        {
-            "name": "Code Generator Prompt",
-            "template": "Generate {{}} code for {{}}.\n\nRequirements:\n{{}}\n\nConstraints:\n- Language version: {{}}\n- Framework: {{}}\n- Dependencies: {{}}\n- Coding standards: {{}}\n\nProvide:\n1. Complete implementation with comments\n2. Error handling\n3. Input validation\n4. Unit tests with {{}} testing framework\n5. Usage examples\n6. Performance considerations\n7. Edge cases handled\n8. Documentation comments\n\nMake the code production-ready with proper logging and monitoring hooks."
-        },
-        {
-            "name": "Software Architecture Review",
-            "template": "Review the software architecture for {{}}.\n\nArchitecture document/description:\n{{}}\n\nEvaluate:\n1. Adherence to requirements\n2. Scalability approach\n3. Performance characteristics\n4. Security considerations\n5. Maintainability and modularity\n6. Technology choices and trade-offs\n7. Data flow and consistency\n8. Failure modes and resilience\n9. Monitoring and observability\n10. Deployment complexity\n11. Testing strategy alignment\n12. Documentation completeness\n13. Team skills alignment\n14. Cost implications\n15. Future extensibility\n\nProvide recommendations with priority levels and alternatives considered."
-        },
-        {
-            "name": "Technical Specification Template",
-            "template": "Write a technical specification for {{}}.\n\nFollow this structure:\n\n1. Overview\n   - Problem statement\n   - Goals and non-goals\n   - Success metrics\n\n2. Requirements\n   - Functional requirements\n   - Non-functional requirements\n   - Constraints\n\n3. Proposed Solution\n   - Architecture diagram (text)\n   - Component descriptions\n   - Data flow\n   - API design\n   - Database schema\n\n4. Alternatives Considered\n   - Option A (pros/cons)\n   - Option B (pros/cons)\n   - Why chosen approach\n\n5. Implementation Plan\n   - Phases\n   - Dependencies\n   - Timeline\n\n6. Testing Strategy\n\n7. Rollout Plan\n\n8. Monitoring and Alerting\n\n9. Risks and Mitigations\n\n10. Open Questions\n\nTarget audience: {{}}"
-        },
-        {
-            "name": "Legacy System Modernization",
-            "template": "Create a modernization strategy for {{}} legacy system.\n\nCurrent tech: {{}}\nAge: {{}} years\nPain points: {{}}\n\nProvide:\n1. Current state assessment\n2. Target architecture vision\n3. Migration strategies considered\n4. Recommended approach with rationale\n5. Phase breakdown\n6. Quick wins (6 months)\n7. Medium-term goals (12-18 months)\n8. Long-term vision (24+ months)\n9. Risk mitigation\n10. Team upskilling plan\n11. Testing strategy during migration\n12. Parallel run approach\n13. Cutover criteria\n14. Success metrics\n15. Budget estimation\n\nInclude specific technology recommendations."
+  /* ── CONSTANTS ─────────────────────── */
+  const PF_KEY = 'promptfiller_v3';
+  const PF_LAST_KEY = 'promptfiller_last_id';
+  const DEFAULT_PROMPTS = [
+    {
+      id: 'demo-1',
+      name: 'Technical documentation note',
+      template: `Act as a senior software engineer writing structured technical documentation for a public GitHub repository focused on Python and Data Structures & Algorithms.\n\nStrict Writing Rules:\n- No emojis.\n- No conversational tone.\n- No motivational or instructional phrases.\n- Formal, analytical, and precise.\n\nStructure Requirements:\n1. Definition and Concept Overview\n2. Core Principles and Internal Mechanics\n3. Step-by-Step Logical Breakdown\n4. Implementation (Python) with meaningful inline comments\n5. Time and Space Complexity Analysis\n6. Edge Cases and Failure Scenarios\n7. Practical Use Cases\n\nTopic:\n{{}}`,
+      created: Date.now(),
+    },
+    {
+      id: 'demo-2',
+      name: 'Story generator',
+      template: 'Write a {{}} story about a {{}} who discovers {{}} and ultimately {{}}.',
+      created: Date.now() - 1000,
+    },
+    {
+      id: 'demo-3',
+      name: 'Expert explainer',
+      template: 'Act as a {{}} expert. Explain {{}} to a {{}} in simple but precise terms. Use {{}} as an analogy.',
+      created: Date.now() - 2000,
+    },
+  ];
+
+  /* ── STATE ─────────────────────────── */
+  let prompts = [];
+  let activeId = null;
+  let dirty = false;
+  let searchQuery = '';
+  let confirmCallback = null;
+  let toastTimer = null;
+
+  /* ── STORAGE ───────────────────────── */
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(PF_KEY);
+      if (raw) {
+        prompts = JSON.parse(raw);
+      } else {
+        prompts = DEFAULT_PROMPTS.map(p => ({ ...p }));
+        saveToStorage();
+      }
+    } catch {
+      prompts = [];
+    }
+  }
+
+  function saveToStorage() {
+    try {
+      localStorage.setItem(PF_KEY, JSON.stringify(prompts));
+    } catch (e) {
+      showToast('Storage error — data may not be saved.');
+    }
+  }
+
+  function saveLastId(id) {
+    try {
+      if (id) {
+        localStorage.setItem(PF_LAST_KEY, id);
+      } else {
+        localStorage.removeItem(PF_LAST_KEY);
+      }
+    } catch {}
+  }
+
+  function loadLastId() {
+    try {
+      return localStorage.getItem(PF_LAST_KEY) || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /* ── UTILS ─────────────────────────── */
+  function genId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function countPH(str) {
+    return (str.match(/\{\{\}\}/g) || []).length;
+  }
+
+  function slugify(str) {
+    return (str || 'prompt')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'prompt';
+  }
+
+  function formatDate(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function getById(id) {
+    return prompts.find(p => p.id === id) || null;
+  }
+
+  function getInputValues() {
+    return Array.from(document.querySelectorAll('.ph-input')).map(t => t.value);
+  }
+
+  /* ── TOAST ─────────────────────────── */
+  function showToast(msg, duration = 2000) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+  }
+
+  /* ── DIRTY STATE ───────────────────── */
+  function setDirty(val) {
+    dirty = val;
+    const dot = document.getElementById('dirtyDot');
+    const discardBtn = document.getElementById('btnDiscard');
+    dot.style.display = (val && activeId) ? 'block' : 'none';
+    discardBtn.style.display = (val && activeId) ? 'inline-flex' : 'none';
+  }
+
+  /* ── FILTERED PROMPTS ──────────────── */
+  function filteredPrompts() {
+    if (!searchQuery) return prompts;
+    const q = searchQuery.toLowerCase();
+    return prompts.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.template || '').toLowerCase().includes(q)
+    );
+  }
+
+  /* ── SIDEBAR ───────────────────────── */
+  function renderSidebar() {
+    const list = document.getElementById('sidebarList');
+    const visible = filteredPrompts();
+
+    if (!visible.length) {
+      list.innerHTML = `<div class="sidebar-empty">${
+        searchQuery ? 'No prompts match your search.' : 'No prompts yet.<br>Click <b>+</b> to create one.'
+      }</div>`;
+      return;
+    }
+
+    list.innerHTML = visible.map(p => `
+      <div class="sidebar-item${activeId === p.id ? ' active' : ''}"
+           data-id="${esc(p.id)}"
+           draggable="true"
+           role="button"
+           tabindex="0"
+           aria-label="${esc(p.name || 'Untitled')}">
+        <svg class="icon sidebar-item-icon" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <div class="sidebar-item-text">
+          <span class="sidebar-item-name">${esc(p.name || 'Untitled')}</span>
+          <span class="sidebar-item-meta">${countPH(p.template || '')} ph · ${formatDate(p.updated || p.created)}</span>
+        </div>
+        <div class="sidebar-item-acts">
+          <button class="icon-btn sm" data-act="dl" data-id="${esc(p.id)}" title="Download as .md">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <button class="icon-btn sm" data-act="del" data-id="${esc(p.id)}" title="Delete">
+            <svg class="icon" viewBox="0 0 24 24">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ── EDITOR ────────────────────────── */
+  function renderEditor() {
+    const emptyState = document.getElementById('emptyState');
+    const editorFields = document.getElementById('editorFields');
+    const breadSep = document.getElementById('breadcrumbSep');
+    const breadName = document.getElementById('breadcrumbName');
+
+    if (!activeId) {
+      emptyState.style.display = 'flex';
+      editorFields.style.display = 'none';
+      breadSep.style.display = 'none';
+      breadName.textContent = '';
+      setDirty(false);
+      renderOutput();
+      return;
+    }
+
+    const p = getById(activeId);
+    if (!p) { activeId = null; renderEditor(); return; }
+
+    emptyState.style.display = 'none';
+    editorFields.style.display = 'flex';
+    breadSep.style.display = 'flex';
+    breadName.textContent = p.name || 'Untitled';
+
+    document.getElementById('promptName').value = p.name || '';
+    document.getElementById('templateArea').value = p.template || '';
+
+    rebuildInputs(p.template || '');
+    setDirty(false);
+    renderOutput();
+  }
+
+  function rebuildInputs(template) {
+    const n = countPH(template);
+    const wrap = document.getElementById('inputsWrap');
+    const oldValues = Array.from(wrap.querySelectorAll('.ph-input')).map(t => t.value);
+
+    wrap.innerHTML = '';
+
+    document.getElementById('phCount').textContent = n;
+    document.getElementById('inCount').textContent = n;
+
+    if (n === 0) {
+      const msg = document.createElement('div');
+      msg.className = 'ph-empty-msg';
+      msg.textContent = 'No {{}} placeholders found in template.';
+      wrap.appendChild(msg);
+      renderOutput();
+      return;
+    }
+
+    for (let i = 0; i < n; i++) {
+      const row = document.createElement('div');
+      row.className = 'ph-row';
+
+      const num = document.createElement('span');
+      num.className = 'ph-num';
+      num.textContent = i + 1;
+
+      const ta = document.createElement('textarea');
+      ta.className = 'ph-input field-textarea';
+      ta.style.minHeight = '32px';
+      ta.style.maxHeight = '100px';
+      ta.placeholder = `Placeholder ${i + 1}`;
+      ta.rows = 1;
+      ta.value = oldValues[i] || '';
+      ta.addEventListener('input', () => {
+        autoResize(ta);
+        renderOutput();
+      });
+
+      row.appendChild(num);
+      row.appendChild(ta);
+      wrap.appendChild(row);
+
+      // set initial height
+      setTimeout(() => autoResize(ta), 0);
+    }
+
+    renderOutput();
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  /* ── OUTPUT ────────────────────────── */
+  function renderOutput() {
+    const oc = document.getElementById('outputContent');
+    const meta = document.getElementById('outputMeta');
+
+    if (!activeId) {
+      oc.innerHTML = '<span class="output-placeholder">Generated output will appear here as you type...</span>';
+      meta.style.display = 'none';
+      return;
+    }
+
+    const template = document.getElementById('templateArea').value;
+
+    if (!template.trim()) {
+      oc.innerHTML = '<span class="output-placeholder">Enter a template on the left...</span>';
+      meta.style.display = 'none';
+      return;
+    }
+
+    const inputs = getInputValues();
+    const parts = template.split(/\{\{\}\}/);
+    let result = parts[0];
+
+    for (let i = 1; i < parts.length; i++) {
+      const val = (inputs[i - 1] || '').trim();
+      result += (val || '___') + parts[i];
+    }
+
+    oc.textContent = result;
+
+    // word/char counts
+    const chars = result.length;
+    const words = result.trim() ? result.trim().split(/\s+/).length : 0;
+    document.getElementById('outputCharCount').textContent = chars.toLocaleString() + ' chars';
+    document.getElementById('outputWordCount').textContent = words.toLocaleString() + ' words';
+    meta.style.display = 'flex';
+  }
+
+  /* ── CRUD ──────────────────────────── */
+  function createPrompt() {
+    const p = {
+      id: genId(),
+      name: 'Untitled prompt',
+      template: '',
+      created: Date.now(),
+      updated: Date.now(),
+    };
+    prompts.unshift(p);
+    saveToStorage();
+    activeId = p.id;
+    saveLastId(activeId);
+    renderSidebar();
+    renderEditor();
+
+    // focus name
+    setTimeout(() => {
+      const nameInput = document.getElementById('promptName');
+      nameInput.focus();
+      nameInput.select();
+    }, 50);
+  }
+
+  function selectPrompt(id) {
+    if (id === activeId) return;
+    if (dirty) {
+      if (!confirm('You have unsaved changes. Discard them?')) return;
+    }
+    activeId = id;
+    saveLastId(activeId);
+    setDirty(false);
+    renderSidebar();
+    renderEditor();
+  }
+
+  function savePrompt() {
+    if (!activeId) return;
+    const p = getById(activeId);
+    if (!p) return;
+
+    p.name = document.getElementById('promptName').value.trim() || 'Untitled';
+    p.template = document.getElementById('templateArea').value;
+    p.updated = Date.now();
+
+    saveToStorage();
+    setDirty(false);
+    renderSidebar();
+
+    document.getElementById('breadcrumbName').textContent = p.name;
+    showToast('Saved');
+  }
+
+  function deletePrompt(id) {
+    const p = getById(id);
+    const name = p ? (p.name || 'Untitled') : 'this prompt';
+    showConfirm(
+      'Delete prompt',
+      `"${name}" will be permanently deleted.`,
+      () => {
+        prompts = prompts.filter(pr => pr.id !== id);
+        saveToStorage();
+        if (activeId === id) {
+          activeId = prompts.length ? prompts[0].id : null;
+          saveLastId(activeId);
+          setDirty(false);
         }
-    ];
+        renderSidebar();
+        renderEditor();
+        showToast('Deleted');
+      }
+    );
+  }
 
-    // Utility Functions
-    function countPlaceholders(str) {
-        const matches = str.match(/\{\{\}\}/g);
-        return matches ? matches.length : 0;
-    }
+  function deleteAll() {
+    if (!prompts.length) return;
+    showConfirm(
+      'Delete all prompts',
+      `This will permanently remove all ${prompts.length} prompt(s). Export first if you want a backup.`,
+      () => {
+        prompts = [];
+        activeId = null;
+        saveLastId(null);
+        setDirty(false);
+        saveToStorage();
+        renderSidebar();
+        renderEditor();
+        showToast('All prompts deleted');
+      }
+    );
+  }
 
-    function refreshInputBadges() {
-        const groups = document.querySelectorAll('#inputsContainer .input-group');
-        groups.forEach((group, idx) => {
-            const badge = group.querySelector('.input-hint');
-            if (badge) badge.textContent = idx + 1;
-        });
-    }
+  /* ── EXPORT ────────────────────────── */
+  function promptToMd(p) {
+    return `${p.name || 'Untitled'}\n${p.template || ''}`;
+  }
 
-    function updateStats() {
-        const phCount = countPlaceholders(templateArea.value);
-        const inputCount = document.querySelectorAll('#inputsContainer .input-group').length;
+  function downloadText(filename, text) {
+    const a = document.createElement('a');
+    a.href = 'data:text/markdown;charset=utf-8,' + encodeURIComponent(text);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
 
-        placeholderSpan.textContent = phCount;
-        inputSpan.textContent = inputCount;
+  function exportOne(id) {
+    const p = getById(id);
+    if (!p) return;
+    downloadText(slugify(p.name || 'prompt') + '.md', promptToMd(p));
+    showToast('Downloaded');
+  }
 
-        return { phCount, inputCount };
-    }
+  function exportAll() {
+    if (!prompts.length) { showToast('No prompts to export'); return; }
+    const md = prompts.map(promptToMd).join('\n\n---\n\n');
+    downloadText('prompts-export.md', md);
+    showToast(`Exported ${prompts.length} prompt(s)`);
+  }
 
-    // Remove all input fields
-    function removeAllInputs() {
-        while (inputsContainer.firstChild) {
-            inputsContainer.removeChild(inputsContainer.firstChild);
-        }
-    }
+  /* ── IMPORT ────────────────────────── */
+  function importMd(text) {
+    const blocks = text.split(/\n---\n/);
+    let added = 0;
 
-    // Create input fields exactly matching placeholder count
-    function createInputsForPlaceholders(count) {
-        removeAllInputs();
-
-        for (let i = 0; i < count; i++) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'input-group';
-
-            const badge = document.createElement('span');
-            //badge.className = 'input-hint';
-            //badge.textContent = i + 1;
-
-            const newInput = document.createElement('textarea');
-            newInput.rows = 1;
-            newInput.placeholder = i + 1 + "th Placeholder";
-
-            wrapper.appendChild(badge);
-            wrapper.appendChild(newInput);
-            inputsContainer.appendChild(wrapper);
-        }
-
-        refreshInputBadges();
-        updateStats();
-    }
-
-    // Core Functions
-
-
-    function syncInputsToTemplate() {
-        const phCount = countPlaceholders(templateArea.value);
-        createInputsForPlaceholders(phCount);
-    }
-
-    function generatePrompt() {
-        const template = templateArea.value;
-        const inputs = Array.from(document.querySelectorAll('#inputsContainer textarea')).map(inp => inp.value);
-        const parts = template.split(/\{\{\}\}/);
-
-        let result = parts[0] || '';
-
-        for (let i = 0; i < parts.length - 1; i++) {
-            const value = (i < inputs.length && inputs[i].trim() !== '') ? inputs[i] : '___';
-            result += value + (parts[i + 1] || '');
-        }
-
-        outputText.innerText = result;
-    }
-
-    function loadSelectedPrompt() {
-        const selectedTemplate = dropdown.value;
-        if (selectedTemplate) {
-            templateArea.value = selectedTemplate;
-            syncInputsToTemplate();
-            generatePrompt();
-        }
-    }
-
-    function initializeDropdown() {
-        // Clear dropdown
-        dropdown.innerHTML = '';
-
-        // Add hardcoded prompts as options
-        hardcodedPrompts.forEach((prompt, index) => {
-            const option = document.createElement('option');
-            option.value = prompt.template;
-            option.textContent = prompt.name;
-            dropdown.appendChild(option);
-        });
-
-        // Select the first option by default
-        dropdown.selectedIndex = 0;
-
-        // Load the first template
-        templateArea.value = hardcodedPrompts[0].template;
-    }
-
-    function initialize() {
-        // Initialize dropdown first (this sets the template)
-        initializeDropdown();
-
-        // Create inputs matching placeholders
-        syncInputsToTemplate();
-
-        // Generate initial prompt
-        generatePrompt();
-    }
-
-    function copyGeneratedOutput() {
-
-        const textToCopy = outputText.innerText;
-
-        if (!textToCopy.trim()) return;
-
-        // Modern Clipboard API (works on HTTPS / localhost)
-        if (navigator.clipboard && window.isSecureContext) {
-
-            navigator.clipboard.writeText(textToCopy)
-                .then(() => showCopySuccess())
-                .catch(() => fallbackCopy(textToCopy));
-
-        } else {
-            // Fallback for non-secure contexts
-            fallbackCopy(textToCopy);
-        }
-    }
-
-    function fallbackCopy(text) {
-
-        const tempTextArea = document.createElement("textarea");
-        tempTextArea.value = text;
-
-        tempTextArea.style.position = "fixed";
-        tempTextArea.style.opacity = "0";
-
-        document.body.appendChild(tempTextArea);
-
-        tempTextArea.focus();
-        tempTextArea.select();
-
-        try {
-            document.execCommand("copy");
-            showCopySuccess();
-        } catch (err) {
-            showCopyFailure();
-        }
-
-        document.body.removeChild(tempTextArea);
-    }
-
-    function showCopySuccess() {
-        copyButton.textContent = "Copied";
-        setTimeout(() => {
-            copyButton.textContent = "Copy";
-        }, 1500);
-    }
-
-    function showCopyFailure() {
-        copyButton.textContent = "Failed";
-        setTimeout(() => {
-            copyButton.textContent = "Copy";
-        }, 1500);
-    }
-    copyButton.addEventListener('click', copyGeneratedOutput);
-    // Event Listeners
-    templateArea.addEventListener('input', function () {
-        syncInputsToTemplate();
-        generatePrompt();
+    blocks.forEach(b => {
+      const trimmed = b.trim();
+      if (!trimmed) return;
+      const lines = trimmed.split('\n');
+      const name = lines[0].replace(/^#+\s*/, '').trim();
+      const template = lines.slice(1).join('\n').trim();
+      if (!name && !template) return;
+      prompts.push({
+        id: genId(),
+        name: name || 'Imported',
+        template: template || '',
+        created: Date.now(),
+        updated: Date.now(),
+      });
+      added++;
     });
 
-    // Expose functions to global scope
-    window.syncInputsToTemplate = syncInputsToTemplate;
-    window.generatePrompt = generatePrompt;
-    window.loadSelectedPrompt = loadSelectedPrompt;
+    if (added) {
+      saveToStorage();
+      renderSidebar();
+      showToast(`Imported ${added} prompt(s)`);
+    } else {
+      showToast('No valid prompts found in file');
+    }
+  }
 
-    // Initialize everything
-    initialize();
+  /* ── COPY OUTPUT ───────────────────── */
+  function copyOutput() {
+    const oc = document.getElementById('outputContent');
+    const text = oc.textContent || '';
+    if (!text || oc.querySelector('.output-placeholder')) return;
+
+    const lbl = document.getElementById('copyLabel');
+
+    const succeed = () => {
+      lbl.textContent = 'Copied';
+      showToast('Output copied to clipboard');
+      setTimeout(() => { lbl.textContent = 'Copy'; }, 1600);
+    };
+    const fail = () => { showToast('Copy failed — try selecting manually'); };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(succeed).catch(() => fallbackCopy(text, succeed, fail));
+    } else {
+      fallbackCopy(text, succeed, fail);
+    }
+  }
+
+  function fallbackCopy(text, succeed, fail) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      document.execCommand('copy');
+      succeed();
+    } catch {
+      fail();
+    }
+    document.body.removeChild(ta);
+  }
+
+  /* ── CLEAR VALUES ──────────────────── */
+  function clearValues() {
+    document.querySelectorAll('.ph-input').forEach(t => {
+      t.value = '';
+      autoResize(t);
+    });
+    renderOutput();
+  }
+
+  /* ── CONFIRM MODAL ─────────────────── */
+  function showConfirm(title, msg, cb) {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMsg').textContent = msg;
+    document.getElementById('confirmModal').style.display = 'flex';
+    confirmCallback = cb;
+  }
+
+  /* ── RESIZE HANDLE ─────────────────── */
+  function initResizeHandle() {
+    const handle = document.getElementById('resizeHandle');
+    const workspace = document.querySelector('.workspace');
+    let dragging = false;
+    let startX = 0;
+    let startLeftW = 0;
+
+    handle.addEventListener('mousedown', e => {
+      dragging = true;
+      startX = e.clientX;
+      startLeftW = document.querySelector('.pane-left').offsetWidth;
+      handle.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const totalW = workspace.offsetWidth;
+      const newLeftW = Math.max(280, Math.min(startLeftW + dx, totalW - 260));
+      document.querySelector('.pane-left').style.flex = 'none';
+      document.querySelector('.pane-left').style.width = newLeftW + 'px';
+      document.querySelector('.pane-right').style.flex = '1';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      handle.classList.remove('dragging');
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    });
+  }
+
+  /* ── DRAG REORDER SIDEBAR ──────────── */
+  let dragId = null;
+
+  function initDragReorder() {
+    const list = document.getElementById('sidebarList');
+
+    list.addEventListener('dragstart', e => {
+      const item = e.target.closest('.sidebar-item');
+      if (!item) return;
+      dragId = item.dataset.id;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => item.style.opacity = '0.4', 0);
+    });
+
+    list.addEventListener('dragend', e => {
+      const item = e.target.closest('.sidebar-item');
+      if (item) item.style.opacity = '';
+      document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    list.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const item = e.target.closest('.sidebar-item');
+      document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('drag-over'));
+      if (item && item.dataset.id !== dragId) item.classList.add('drag-over');
+    });
+
+    list.addEventListener('dragleave', e => {
+      const item = e.target.closest('.sidebar-item');
+      if (item) item.classList.remove('drag-over');
+    });
+
+    list.addEventListener('drop', e => {
+      e.preventDefault();
+      const target = e.target.closest('.sidebar-item');
+      if (!target) return;
+      target.classList.remove('drag-over');
+      if (!dragId || target.dataset.id === dragId) return;
+
+      const fromIdx = prompts.findIndex(p => p.id === dragId);
+      const toIdx = prompts.findIndex(p => p.id === target.dataset.id);
+      if (fromIdx < 0 || toIdx < 0) return;
+
+      const [moved] = prompts.splice(fromIdx, 1);
+      prompts.splice(toIdx, 0, moved);
+      saveToStorage();
+      renderSidebar();
+    });
+  }
+
+  /* ── KEYBOARD SHORTCUTS ────────────── */
+  function initKeyboard() {
+    document.addEventListener('keydown', e => {
+      const isMod = e.ctrlKey || e.metaKey;
+
+      if (isMod && e.key === 's') {
+        e.preventDefault();
+        savePrompt();
+      }
+
+      if (isMod && e.key === 'n') {
+        e.preventDefault();
+        createPrompt();
+      }
+
+      if (e.key === 'Escape') {
+        if (document.getElementById('importModal').style.display !== 'none') {
+          document.getElementById('importModal').style.display = 'none';
+        }
+        if (document.getElementById('confirmModal').style.display !== 'none') {
+          document.getElementById('confirmModal').style.display = 'none';
+          confirmCallback = null;
+        }
+        if (document.getElementById('howItWorksModal').style.display !== 'none') {
+          document.getElementById('howItWorksModal').style.display = 'none';
+        }
+      }
+    });
+  }
+
+  /* ── EVENT WIRING ──────────────────── */
+  function wireEvents() {
+
+    /* Sidebar toggle */
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const collapsed = sb.classList.toggle('collapsed');
+      document.getElementById('toggleIconOpen').style.display = collapsed ? 'none' : 'block';
+      document.getElementById('toggleIconClose').style.display = collapsed ? 'block' : 'none';
+    });
+
+    /* Search */
+    document.getElementById('searchInput').addEventListener('input', e => {
+      searchQuery = e.target.value;
+      renderSidebar();
+    });
+
+    /* New prompt */
+    document.getElementById('btnNew').addEventListener('click', createPrompt);
+    document.getElementById('btnNewEmpty').addEventListener('click', createPrompt);
+
+    /* Save */
+    document.getElementById('btnSave').addEventListener('click', savePrompt);
+
+    /* Discard */
+    document.getElementById('btnDiscard').addEventListener('click', () => {
+      setDirty(false);
+      renderEditor();
+    });
+
+    /* Export */
+    document.getElementById('btnExportAll').addEventListener('click', exportAll);
+    document.getElementById('btnExportOne').addEventListener('click', () => {
+      if (activeId) exportOne(activeId);
+    });
+
+    /* Delete all */
+    document.getElementById('btnDeleteAll').addEventListener('click', deleteAll);
+
+    /* Copy output */
+    document.getElementById('btnCopy').addEventListener('click', copyOutput);
+
+    /* Clear values */
+    document.getElementById('btnClearValues').addEventListener('click', clearValues);
+
+    /* Sidebar list (click + keyboard) */
+    document.getElementById('sidebarList').addEventListener('click', e => {
+      const actBtn = e.target.closest('[data-act]');
+      if (actBtn) {
+        e.stopPropagation();
+        const id = actBtn.dataset.id;
+        if (actBtn.dataset.act === 'del') deletePrompt(id);
+        if (actBtn.dataset.act === 'dl') exportOne(id);
+        return;
+      }
+      const item = e.target.closest('.sidebar-item');
+      if (item) selectPrompt(item.dataset.id);
+    });
+
+    document.getElementById('sidebarList').addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const item = e.target.closest('.sidebar-item');
+        if (item) { e.preventDefault(); selectPrompt(item.dataset.id); }
+      }
+    });
+
+    /* Editor live events */
+    document.getElementById('promptName').addEventListener('input', () => setDirty(true));
+
+    document.getElementById('templateArea').addEventListener('input', () => {
+      setDirty(true);
+      rebuildInputs(document.getElementById('templateArea').value);
+    });
+
+    /* Import modal open */
+    document.getElementById('btnImportOpen').addEventListener('click', () => {
+      document.getElementById('importTextArea').value = '';
+      document.getElementById('importModal').style.display = 'flex';
+      setTimeout(() => document.getElementById('importTextArea').focus(), 50);
+    });
+
+    /* Import modal close/confirm */
+    document.getElementById('btnImportClose').addEventListener('click', () => {
+      document.getElementById('importModal').style.display = 'none';
+    });
+    document.getElementById('btnImportCancel').addEventListener('click', () => {
+      document.getElementById('importModal').style.display = 'none';
+    });
+    document.getElementById('btnImportConfirm').addEventListener('click', () => {
+      const val = document.getElementById('importTextArea').value.trim();
+      document.getElementById('importModal').style.display = 'none';
+      if (val) importMd(val);
+    });
+
+    /* Overlay click-outside to close */
+    document.getElementById('importModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('importModal')) {
+        document.getElementById('importModal').style.display = 'none';
+      }
+    });
+    document.getElementById('confirmModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('confirmModal')) {
+        document.getElementById('confirmModal').style.display = 'none';
+        confirmCallback = null;
+      }
+    });
+    document.getElementById('howItWorksModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('howItWorksModal')) {
+        document.getElementById('howItWorksModal').style.display = 'none';
+      }
+    });
+
+    /* Confirm modal */
+    document.getElementById('btnConfirmCancel').addEventListener('click', () => {
+      document.getElementById('confirmModal').style.display = 'none';
+      confirmCallback = null;
+    });
+    document.getElementById('btnConfirmOk').addEventListener('click', () => {
+      document.getElementById('confirmModal').style.display = 'none';
+      if (confirmCallback) confirmCallback();
+      confirmCallback = null;
+    });
+
+    /* How it works modal */
+    document.getElementById('btnHowItWorks').addEventListener('click', () => {
+      document.getElementById('howItWorksModal').style.display = 'flex';
+    });
+    document.getElementById('btnHowItWorksClose').addEventListener('click', () => {
+      document.getElementById('howItWorksModal').style.display = 'none';
+    });
+  }
+
+  /* ── INIT ──────────────────────────── */
+  function init() {
+    loadFromStorage();
+
+    // Restore last used prompt, fall back to first
+    const lastId = loadLastId();
+    if (lastId && getById(lastId)) {
+      activeId = lastId;
+    } else if (prompts.length) {
+      activeId = prompts[0].id;
+      saveLastId(activeId);
+    }
+
+    renderSidebar();
+    renderEditor();
+
+    wireEvents();
+    initResizeHandle();
+    initDragReorder();
+    initKeyboard();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+
 })();
-

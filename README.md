@@ -1,29 +1,70 @@
-# Placeholder Text Filler
+# Prompt Filler
 
-A sleek, dark‑themed web tool that replaces `{{}}` placeholders in text with custom values. Built with vanilla HTML, CSS, and JavaScript – no dependencies, no build step.
+A professional, dark-themed browser tool for managing reusable prompt templates with `{{}}` placeholders. Built with vanilla HTML, CSS, and JavaScript — no dependencies, no build step, no tracking.
 
 ## Live
+
 [https://sayantan-b-dev.github.io/Lv1_Placeholder_Text_Filler/](https://sayantan-b-dev.github.io/Lv1_Placeholder_Text_Filler/)
+
+![](./preview.png)
+---
 
 ## Features
 
-- **Dynamic placeholders** – Write any text using `{{}}` for variables.
-- **Auto‑matching inputs** – Input fields are automatically created for every placeholder.
-- **Live statistics** – See the number of placeholders and input fields at a glance.
-- **Pre‑loaded templates** – Choose from a collection of ready‑to‑use prompt templates (e.g., technical documentation, code review, system design).
-- **Dark mode** – Easy on the eyes, modern interface.
-- **Responsive design** – Works on desktop, tablet, and mobile.
-- **No tracking, no ads, no nonsense** – Runs entirely in your browser.
+### Editor
+- Write templates using `{{}}` as placeholders — any number, anywhere in the text
+- Input fields are generated automatically, one per placeholder, numbered in order
+- Live output updates on every keystroke — no button required
+- Word and character count shown beneath the output
 
-## How to Use
+### Prompt library (localStorage)
+- All prompts are persisted in browser localStorage — no server, no account needed
+- Full CRUD: create, rename, edit, save, delete
+- Keyboard shortcut `Ctrl+S` / `Cmd+S` to save; `Ctrl+N` / `Cmd+N` for a new prompt
+- Revert button to discard unsaved changes
+- Unsaved changes are indicated by a dot in the header breadcrumb
 
-1. **Select a template** from the dropdown, or write your own in the textarea using `{{}}` for placeholders.
-2. **Fill in the values** – Each placeholder gets its own input field (they appear automatically).
-3. **Click “Generate prompt”** to see the final text with your values inserted.
-4. **Copy the result** (if you want – you can add a copy button easily).
+### Sidebar
+- Collapsible sidebar lists all saved prompts with placeholder count and last-edited date
+- Filter/search prompts by name or template content
+- Drag-and-drop to reorder prompts
+- Per-prompt download and delete buttons appear on hover
 
-The **“Sync with template”** button ensures the number of input fields matches the number of placeholders.  
-The **“Add input”** button is kept for legacy reasons but actually just syncs – inputs are always exactly as many as placeholders.
+### Import / Export
+- **Export single prompt** — download as a `.md` file from the topbar
+- **Export all prompts** — download a single `prompts-export.md` with all prompts separated by `---`
+- **Import from markdown** — paste or upload a `.md` file; prompts separated by `---` are parsed and added to the library
+
+#### Import format
+
+Each block starts with the prompt name on the first line, followed by the template body. Blocks are separated by `---`:
+
+```
+My first prompt
+Write a {{}} story about a {{}} who discovers {{}} and then {{}}.
+
+---
+
+My second prompt
+Act as a {{}} expert and explain {{}} to a {{}} using {{}} as an analogy.
+```
+
+### Safety
+- A persistent notice in the sidebar reminds you that clearing browser data deletes all prompts
+- Use **Export all** regularly as a backup
+- Re-import your export file at any time to restore
+
+---
+
+## How to use
+
+1. Click **+** in the sidebar (or press `Ctrl+N`) to create a new prompt, or select an existing one
+2. Write your template in the editor using `{{}}` for variable slots — e.g. `Write a {{}} story about a {{}} who {{}}.`
+3. Fill in the numbered value fields that appear below the template
+4. The final output is generated live in the right pane — click **Copy** to copy it to the clipboard
+5. Press `Ctrl+S` or click **Save** when you want to keep the prompt in your library
+
+---
 
 ## Example
 
@@ -32,40 +73,58 @@ The **“Add input”** button is kept for legacy reasons but actually just sync
 Write a {{}} story about a {{}} who discovers {{}} and then {{}}.
 ```
 
-**Inputs:**
-- fantasy
-- wizard
-- magic
-- saves the kingdom
+**Values:**
+1. `fantasy`
+2. `young wizard`
+3. `an ancient map`
+4. `must save two kingdoms`
 
-**Generated output:**
+**Output:**
 ```
-Write a fantasy story about a wizard who discovers magic and then saves the kingdom.
+Write a fantasy story about a young wizard who discovers an ancient map and then must save two kingdoms.
 ```
+
+---
 
 ## Installation
 
-1. Clone the repository or download the ZIP.
-   ```bash
-   git clone https://github.com/yourusername/placeholder-text-filler.git
-   ```
-2. Open `index.html` in any modern browser.
-3. That’s it – no server, no build, no installation.
-
-## File Structure
-
-```
-placeholder-text-filler/
-├── index.html          # Main HTML file
-├── style.css           # All styles (dark theme, custom scrollbars, dropdown)
-├── script.js           # All JavaScript logic
-└── README.md           # This file
+```bash
+git clone https://github.com/sayantan-b-dev/Lv1_Placeholder_Text_Filler.git
+cd Lv1_Placeholder_Text_Filler
 ```
 
-## Customisation
+Open `index.html` in any modern browser. No server, no build, no installation required.
 
-- **Add more templates** – Edit the `hardcodedPrompts` array in `script.js`.
-- **Change the theme** – Modify the CSS variables in `style.css`.
-- **Add a copy button** – Uncomment the copy button section in `index.html` and the corresponding JavaScript in `script.js`.
+---
 
+## File structure
 
+```
+prompt-filler/
+├── index.html      # Application markup
+├── style.css       # All styles — dark theme, layout, components
+├── script.js       # All logic — CRUD, storage, import/export, drag, resize
+└── README.md       # This file
+```
+
+---
+
+## Keyboard shortcuts
+
+| Action | Shortcut |
+|---|---|
+| Save current prompt | `Ctrl+S` / `Cmd+S` |
+| New prompt | `Ctrl+N` / `Cmd+N` |
+| Close modal | `Escape` |
+
+---
+
+## Browser support
+
+Works in all modern browsers (Chrome, Firefox, Safari, Edge). Requires localStorage to be available — private/incognito mode may limit persistence.
+
+---
+
+## Notes on localStorage
+
+Browser localStorage is scoped to the origin (domain + port). Data is not shared across devices or browsers. Clearing site data in browser settings will erase all prompts. Export your prompts regularly using **Export all** to keep a `.md` backup you can re-import at any time.
