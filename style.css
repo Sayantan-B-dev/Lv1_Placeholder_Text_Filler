@@ -643,7 +643,6 @@ textarea::placeholder { color: var(--text-3); }
   font-family: var(--font-mono);
   font-size: 12px;
   resize: none;
-  overflow: hidden;
 }
 
 .ph-empty-msg {
